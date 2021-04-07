@@ -1,85 +1,52 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import './ForecastTab.css';
+import axios from "axios";
+import {apiKey} from "../../App";
 
-function ForecastTab() {
-  return (
-    <div className="tab-wrapper">
-      <article className="forecast-day">
-        <p className="day-description">
-          Maandag
-        </p>
+function ForecastTab({coordinates}) {
+    const [forecast, setForecast] = useState(null)
 
-        <section className="forecast-weather">
-            <span>
-              12&deg; C
-            </span>
-          <span className="weather-description">
-              Licht Bewolkt
-            </span>
-        </section>
-      </article>
+    function createDateString(timestamp) {
+        const day = new Date(timestamp * 1000);
 
-      <article className="forecast-day">
-        <p className="day-description">
-          Maandag
-        </p>
+        return day.toLocaleDateString('nl-NL', { weekday: 'long' });
+    }
 
-        <section className="forecast-weather">
-            <span>
-              12&deg; C
-            </span>
-          <span className="weather-description">
-              Licht Bewolkt
-            </span>
-        </section>
-      </article>
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const result = await axios.get(`https://api.openweathermap.org/data/2.5/onecall?lat=${coordinates.lat}&lon=${coordinates.lon}&exclude=minutely,current,hourly&appid=${apiKey}&lang=nl`)
+                setForecast(result.data.daily.slice(1, 6));
+                console.log(result.data);
+            } catch (e) {
+                console.log(e)
+            }
+        }
 
-      <article className="forecast-day">
-        <p className="day-description">
-          Maandag
-        </p>
+        if (coordinates) {
+            fetchData();
+        }
+    }, [coordinates])
 
-        <section className="forecast-weather">
-            <span>
-              12&deg; C
-            </span>
-          <span className="weather-description">
-              Licht Bewolkt
-            </span>
-        </section>
-      </article>
-
-      <article className="forecast-day">
-        <p className="day-description">
-          Maandag
-        </p>
-
-        <section className="forecast-weather">
-            <span>
-              12&deg; C
-            </span>
-          <span className="weather-description">
-              Licht Bewolkt
-            </span>
-        </section>
-      </article>
-
-      <article className="forecast-day">
-        <p className="day-description">
-          Maandag
-        </p>
-
-        <section className="forecast-weather">
-            <span>
-              12&deg; C
-            </span>
-          <span className="weather-description">
-              Licht Bewolkt
-            </span>
-        </section>
-      </article>
-    </div>
-  );
-};
+    return (
+        <div className="tab-wrapper">
+            {forecast && forecast.map((day) => {
+                return (
+                    <article className="forecast-day" key={day.dt}>
+                        <p className="day-description">
+                            {createDateString(day.dt)}
+                        </p>
+                        <section className="forecast-weather">
+                            <span>{day.temp.day}</span>
+                            <span className="weather-description">
+                                {day.weather[0].description}
+                            </span>
+                        </section>
+                    </article>
+                )
+            })}
+        </div>
+    );
+}
 
 export default ForecastTab;

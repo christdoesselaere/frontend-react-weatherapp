@@ -1,24 +1,33 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import SearchBar from './components/searchBar/SearchBar';
 import TabBarMenu from './components/tabBarMenu/TabBarMenu';
 import MetricSlider from './components/metricSlider/MetricSlider';
 import './App.css';
 import axios from "axios";
+import ForecastTab from "./pages/forecastTab/ForecastTab";
 
 const apiKey = '69c4d21b7323149c13fbf6cb91f01341';
 
 function App() {
     const [weatherData, setWeatherData] = useState(null);
+    const [location, setLocation] = useState('');
 
-    async function fetchData() {
-        try {
-            const result = await axios.get(`https://api.openweathermap.org/data/2.5/weather?q=utrecht,nl&appid=${apiKey}&lang=nl`);
-            setWeatherData(result.data);
-            console.log(result.data);
-        } catch (e) {
-            console.log(e);
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const result = await axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${location},nl&appid=${apiKey}&lang=nl`);
+                setWeatherData(result.data);
+                console.log(result.data);
+            } catch (e) {
+                console.log(e);
+            }
         }
-    }
+
+        if (location) {
+            fetchData();
+        }
+
+    }, [location]);
 
     return (
         <>
@@ -26,8 +35,7 @@ function App() {
 
                 {/*HEADER -------------------- */}
                 <div className="weather-header">
-                    <SearchBar/>
-
+                    <SearchBar setLocationHandler={setLocation}/>
                     <span className="location-details">
                         {weatherData &&
                         <>
@@ -36,11 +44,7 @@ function App() {
                             <h1>{weatherData.main.temp}&deg;</h1>
                         </>
                         }
-
-                        <button type="button" onClick={fetchData}>
-              Haal data op!
-            </button>
-          </span>
+                    </span>
                 </div>
 
                 {/*CONTENT ------------------ */}
@@ -48,7 +52,7 @@ function App() {
                     <TabBarMenu/>
 
                     <div className="tab-wrapper">
-                        Alle inhoud van de tabbladen komt hier!
+                        <ForecastTab coordinates={weatherData && weatherData.coord}/>
                     </div>
                 </div>
 
@@ -59,3 +63,4 @@ function App() {
 }
 
 export default App;
+export {apiKey};
